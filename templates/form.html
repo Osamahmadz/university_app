@@ -3,72 +3,73 @@
 <head>
     <meta charset="UTF-8" />
     <title>نموذج تسجيل الطلاب</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; margin-bottom: 12px; box-sizing: border-box; }
+        button, .whatsapp-button {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .whatsapp-button svg {
+            margin-left: 8px;
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+    <h1>نموذج التسجيل للجامعات التركية</h1>
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 90vh;">
-    <div class="card shadow p-4 w-100" style="max-width: 600px;">
-        <h2 class="mb-4 text-center">نموذج التسجيل للجامعات التركية</h2>
+    <form method="POST" action="/" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
 
-        <form method="POST" action="{{ url_for('index') }}">
-            {{ form.hidden_tag() }}
+        <label for="full_name">الاسم الكامل:</label>
+        {{ form.full_name(id="full_name") }}
 
-            <div class="mb-3">
-                {{ form.full_name.label(class="form-label") }}
-                {{ form.full_name(class="form-control") }}
-            </div>
+        <label for="email">البريد الإلكتروني:</label>
+        {{ form.email(id="email") }}
 
-            <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control") }}
-            </div>
+        <label for="country">الدولة:</label>
+        {{ form.country(id="country") }}
 
-            <div class="mb-3">
-                {{ form.country.label(class="form-label") }}
-                {{ form.country(class="form-control") }}
-            </div>
+        <label for="university">اختر الجامعة:</label>
+        {{ form.university(id="university") }}
 
-            <div class="mb-3">
-                {{ form.university.label(class="form-label") }}
-                {{ form.university(class="form-select") }}
-            </div>
+        <label for="major">التخصص:</label>
+        {{ form.major(id="major") }}
 
-            <div class="mb-3">
-                {{ form.major.label(class="form-label") }}
-                {{ form.major(class="form-control") }}
-            </div>
+        <label>لغة الدراسة:</label><br />
+        {% for subfield in form.language %}
+            {{ subfield() }} {{ subfield.label.text }}
+        {% endfor %}
 
-            <div class="mb-3">
-                {{ form.language.label(class="form-label d-block") }}
-                {% for subfield in form.language %}
-                    <div class="form-check form-check-inline">
-                        {{ subfield(class="form-check-input") }}
-                        {{ subfield.label(class="form-check-label") }}
-                    </div>
-                {% endfor %}
-            </div>
+        <label for="notes">ملاحظات إضافية:</label>
+        {{ form.notes(id="notes") }}
 
-            <div class="mb-3">
-                {{ form.notes.label(class="form-label") }}
-                {{ form.notes(class="form-control", rows="3") }}
-            </div>
+        <label for="cv">رفع السيرة الذاتية (pdf, doc, docx):</label>
+        {{ form.cv(id="cv") }}
 
-            <button type="submit" class="btn btn-primary w-100">{{ form.submit.label.text }}</button>
-        </form>
+        {{ form.submit() }}
+    </form>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="mt-3">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+    <br/>
 
-    </div>
-</div>
+    <a href="https://wa.me/+905528782281" target="_blank" class="whatsapp-button" aria-label="تواصل عبر واتساب">
+        تواصل عبر واتساب
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.52 3.48A11.88 11.88 0 0012 0C5.37 0 .02 5.36 0 12a11.88 11.88 0 002.48 7.52l-2.48 7.48 7.52-2.48A11.88 11.88 0 0024 12c0-3.18-1.24-6.16-3.48-8.52zm-8.1 16.86a8.66 8.66 0 01-4.66-1.36l-.33-.2-4.1 1.34 1.38-4.08-.22-.35a8.68 8.68 0 111.91 4.65zm4.8-5.74c-.27-.14-1.58-.78-1.82-.87-.24-.1-.41-.14-.58.14-.17.27-.66.87-.81 1.05-.15.18-.3.2-.56.07-.27-.14-1.13-.42-2.15-1.33-.8-.71-1.34-1.6-1.5-1.87-.16-.27-.02-.42.12-.56.12-.12.27-.3.41-.45.14-.15.18-.27.27-.44.09-.17.05-.32-.02-.45-.07-.14-.58-1.39-.8-1.9-.22-.5-.44-.43-.58-.44-.15-.01-.32-.01-.5-.01-.17 0-.45.07-.68.32-.23.24-.87.85-.87 2.07s.89 2.4 1.02 2.57c.14.18 1.78 2.72 4.31 3.81.6.26 1.07.41 1.44.53.61.19 1.16.16 1.6.1.49-.07 1.58-.64 1.8-1.26.23-.63.23-1.17.16-1.26-.07-.08-.27-.14-.55-.27z"/>
+        </svg>
+    </a>
 
 </body>
 </html>

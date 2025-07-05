@@ -2,11 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, Res
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, RadioField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, RadioField, TextAreaField, SelectField, FileField
 from wtforms.validators import DataRequired, Email
+from werkzeug.utils import secure_filename
 import sqlite3
 import pandas as pd
 from io import BytesIO
+import os
 
 app = Flask(__name__)
 app.secret_key = "مفتاح-سري-معقد-وطويل-تغيّره-لهذا-المشروع"
@@ -18,6 +20,17 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 DATABASE = 'students.db'
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
+# تأكد وجود مجلد الرفع
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # نموذج مستخدم
 class User(UserMixin):
@@ -53,7 +66,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('كلمة المرور', validators=[DataRequired()])
     submit = SubmitField('دخول')
 
-# فورم تسجيل الطلاب
+# فورم تسجيل الطلاب مع حقل رفع السيرة الذاتية
 class RegistrationForm(FlaskForm):
     full_name = StringField('الاسم الكامل', validators=[DataRequired()])
     email = StringField('البريد الإلكتروني', validators=[DataRequired(), Email()])
@@ -78,6 +91,7 @@ class RegistrationForm(FlaskForm):
     major = StringField('التخصص', validators=[DataRequired()])
     language = RadioField('لغة الدراسة', choices=[('English','إنجليزي'), ('Turkish','تركي')], validators=[DataRequired()])
     notes = TextAreaField('ملاحظات إضافية')
+    cv = FileField('رفع السيرة الذاتية (pdf, doc, docx)')
     submit = SubmitField('إرسال')
 
 def init_db():
@@ -90,6 +104,7 @@ def init_db():
             password_hash TEXT NOT NULL
         )
     ''')
+    # تم إضافة عمود cv_filename لتخزين اسم ملف السيرة الذاتية
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +114,8 @@ def init_db():
             university TEXT,
             major TEXT,
             language TEXT,
-            notes TEXT
+            notes TEXT,
+            cv_filename TEXT
         )
     ''')
     conn.commit()
@@ -139,6 +155,17 @@ def logout():
 def index():
     form = RegistrationForm()
     if form.validate_on_submit():
+        cv_filename = None
+        if form.cv.data:
+            file = form.cv.data
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                cv_filename = filename
+            else:
+                flash("امتداد الملف غير مسموح. الرجاء رفع ملف pdf, doc, أو docx فقط.", "danger")
+                return redirect(url_for('index'))
+
         data = (
             form.full_name.data,
             form.email.data,
@@ -147,12 +174,13 @@ def index():
             form.major.data,
             form.language.data,
             form.notes.data,
+            cv_filename
         )
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO students (full_name, email, country, university, major, language, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO students (full_name, email, country, university, major, language, notes, cv_filename)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', data)
         conn.commit()
         conn.close()
@@ -167,7 +195,7 @@ def index():
 def admin():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute('SELECT id, full_name, email, country, university, major, language, notes FROM students ORDER BY id DESC')
+    cursor.execute('SELECT id, full_name, email, country, university, major, language, notes, cv_filename FROM students ORDER BY id DESC')
     students = cursor.fetchall()
     conn.close()
     return render_template('admin.html', students=students)
