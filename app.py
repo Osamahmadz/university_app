@@ -119,13 +119,12 @@ def init_db():
 def create_admin_user():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ?", ("admin",))
+    cursor.execute("SELECT * FROM users WHERE username = ?", ("osama",))
     if cursor.fetchone() is None:
-        pw_hash = bcrypt.generate_password_hash("admin123").decode('utf-8')
-        cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", ("admin", pw_hash))
+        pw_hash = bcrypt.generate_password_hash("osama1108@").decode('utf-8')
+        cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", ("osama", pw_hash))
         conn.commit()
     conn.close()
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

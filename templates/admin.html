@@ -10,36 +10,55 @@
             min-height: 100vh;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
         .container {
             background-color: rgba(255, 255, 255, 0.12);
-            padding: 30px;
+            padding: 30px 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            margin-top: 40px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            max-width: 1200px;
+            margin: 40px auto;
         }
         h1 {
             font-weight: 700;
             margin-bottom: 30px;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.6);
+            text-align: center;
         }
-        table {
-            background-color: rgba(255, 255, 255, 0.2);
+        .table-responsive {
             border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        table {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            width: 100%;
+            color: #f0f0f0;
         }
         thead tr {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.3);
             font-weight: 600;
-            color: #f1f1f1;
+            color: #e0e0e0;
         }
         tbody tr:hover {
-            background-color: rgba(255,255,255,0.15);
+            background-color: rgba(255,255,255,0.25);
+            cursor: pointer;
+        }
+        th, td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: right;
         }
         .btn-danger {
             background-color: #ff4d6d;
             border: none;
             transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+            padding: 6px 12px;
         }
         .btn-danger:hover {
             background-color: #e63946;
@@ -48,28 +67,57 @@
             background-color: #28a745;
             border: none;
             transition: background-color 0.3s ease;
+            font-size: 1rem;
+            padding: 8px 20px;
         }
         .btn-success:hover {
             background-color: #218838;
+        }
+        .btn-logout {
+            background-color: #d9534f;
+            border: none;
+            transition: background-color 0.3s ease;
+            font-size: 1rem;
+            padding: 8px 20px;
+            margin-left: 10px;
+        }
+        .btn-logout:hover {
+            background-color: #c9302c;
         }
         .actions form {
             display: inline-block;
             margin: 0;
         }
-        .table-responsive {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        .actions button {
+            min-width: 70px;
+        }
+        .top-actions {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            th, td {
+                padding: 8px 10px;
+            }
+            .btn-success, .btn-logout {
+                font-size: 0.9rem;
+                padding: 6px 14px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1 class="text-center">جميع طلبات التسجيل</h1>
-    <div class="mb-4 d-flex justify-content-start gap-2">
-        <a href="{{ url_for('logout') }}" class="btn btn-danger">تسجيل خروج</a>
+    <h1>جميع طلبات التسجيل</h1>
+
+    <div class="top-actions">
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">تسجيل خروج</a>
         <a href="{{ url_for('export') }}" class="btn btn-success">تصدير Excel</a>
     </div>
+
     <div class="table-responsive">
         <table class="table table-borderless text-white text-end align-middle">
             <thead>
@@ -95,12 +143,16 @@
                     <td>{{ s[4] }}</td>
                     <td>{{ s[5] }}</td>
                     <td>{{ s[6] }}</td>
-                    <td>{{ s[7] }}</td>
+                    <td>{{ s[7] or '-' }}</td>
                     <td class="actions">
                         <form method="POST" action="{{ url_for('delete', student_id=s[0]) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟');">
                             <button type="submit" class="btn btn-sm btn-danger">حذف</button>
                         </form>
                     </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center">لا توجد طلبات حالياً.</td>
                 </tr>
                 {% endfor %}
             </tbody>
