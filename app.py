@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
@@ -23,7 +23,6 @@ DATABASE = 'students.db'
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
-# تأكد وجود مجلد الرفع
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -32,7 +31,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# نموذج مستخدم
 class User(UserMixin):
     def __init__(self, id_, username, password_hash):
         self.id = id_
@@ -60,13 +58,11 @@ def load_user(user_id):
         return User(*row)
     return None
 
-# فورم تسجيل الدخول
 class LoginForm(FlaskForm):
     username = StringField('اسم المستخدم', validators=[DataRequired()])
     password = PasswordField('كلمة المرور', validators=[DataRequired()])
     submit = SubmitField('دخول')
 
-# فورم تسجيل الطلاب مع حقل رفع السيرة الذاتية
 class RegistrationForm(FlaskForm):
     full_name = StringField('الاسم الكامل', validators=[DataRequired()])
     email = StringField('البريد الإلكتروني', validators=[DataRequired(), Email()])
@@ -104,7 +100,6 @@ def init_db():
             password_hash TEXT NOT NULL
         )
     ''')
-    # تم إضافة عمود cv_filename لتخزين اسم ملف السيرة الذاتية
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,8 +219,13 @@ def export():
     output.seek(0)
 
     return Response(output,
-                    mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    headers={"Content-Disposition":"attachment;filename=students.xlsx"})
+     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    headers={"Content-Disposition":"attachment;filename=students.xlsx"})
+
+@app.route('/uploads/<filename>')
+@login_required
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     init_db()
